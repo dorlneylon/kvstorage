@@ -1,0 +1,5 @@
+[env]
+ADDRESS = "127.0.0.1:6800"
+CLIENT = "memcache://localhost:11211?timeout=10&tcp_nodelay=true"
+LOGPATH = "server.log"
+FILEPATH = "session.json"
