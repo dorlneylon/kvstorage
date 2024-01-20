@@ -1,4 +1,7 @@
-#[derive(Debug)]
+use std::fmt;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Command {
     Get(String),
     Set(String, String),
@@ -8,12 +11,18 @@ pub enum Command {
     Transact(Vec<Command>),
     Rollback(String, u64),
     Clear(),
-    Quit(),
-    Help(),
     Unknown(String),
 }
 
+impl fmt::Display for Command {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[allow(dead_code)]
 impl Command {
+    // todo! make look clean
     pub fn new(s: &str) -> Command {
         let command_str = s.split_whitespace().next().unwrap_or_default();
         match command_str.to_lowercase().as_str() {
@@ -37,14 +46,12 @@ impl Command {
                 let increment_value = parts.next().unwrap_or_default().parse::<u64>().unwrap();
                 Command::Decr(key.to_string(), increment_value)
             },
-            "quit" => Command::Quit(),
             "transact:" => {
                 let ss = s[s.find('\n').map(|i| i + 1).unwrap_or(s.len())..].to_string();
                 let k = ss.replace("\r", "");
                 let ops: Vec<_> = k.split("\n").map(Command::new).collect();
                 Command::Transact(ops)
             },
-            "help" => Command::Help(),
             "rollback" => {
                 let mut parts = s.splitn(3, ' ').skip(1);
                 let key = parts.next().unwrap_or_default();
@@ -53,6 +60,20 @@ impl Command {
             },
             "clear" => Command::Clear(),
             _ => Command::Unknown(s.to_string()),
+        }
+    }
+
+    pub fn get_key(&self) -> String {
+        match self {
+            Command::Get(key) => key.clone(),
+            Command::Set(key, _) => key.clone(),
+            Command::Del(key) => key.clone(),
+            Command::Incr(key, _) => key.clone(),
+            Command::Decr(key, _) => key.clone(),
+            Command::Transact(_) => String::new(),
+            Command::Rollback(key, _) => key.clone(),
+            Command::Clear() => String::new(),
+            Command::Unknown(_) => String::new(),
         }
     }
 }

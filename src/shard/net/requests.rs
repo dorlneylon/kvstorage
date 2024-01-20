@@ -1,5 +1,6 @@
 use std::io::{Error, ErrorKind};
-use crate::{storage::storage_manager::Storage, cache::cache_manager::CacheManager, utils::{commands::Command, log::load}};
+use crate::{storage::storage_manager::Storage, cache::cache_manager::CacheManager, utils::log::Logger};
+use crate::common::commands::Command;
 
 pub struct RequestHandler {
     cache: CacheManager,
@@ -17,7 +18,7 @@ impl RequestHandler {
     pub fn new_from(cache_addr: &str, file: &str) -> RequestHandler {
         RequestHandler {
             cache: CacheManager::new(cache_addr),
-            storage: Storage::new_from(&load(file).unwrap()),
+            storage: Storage::new_from(&Logger::load(file).unwrap()),
         }
     }
 

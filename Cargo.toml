@@ -6,14 +6,27 @@ edition = "2021"
 [profile.release]
 opt-level = 2
 
-# [profile.dev]
-# warning-level = 2
-# rustc-flags = ["-D", "warnings"]
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "shard"
+path = "src/shard/main.rs"
+
+[[bin]]
+name = "manager"
+path = "src/shard_manager/main.rs"
 
 [dependencies]
 serde_json = "*"
 memcache = "*"
 config = "*"
+serde = "*"
 chrono = "0.4.31"
+clap = { version = "*", features = ["derive"]}
+tonic = "*"
+prost = "*"
+tokio = { version = "1.35.1", features = ["full"] }
+async-recursion = "1.0.5"
+
+[build-dependencies]
+tonic-build = "*"

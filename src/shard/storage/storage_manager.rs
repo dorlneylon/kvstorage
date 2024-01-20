@@ -1,5 +1,6 @@
 use std::{collections::HashMap, io::Error};
 
+#[derive(Clone)]
 pub struct Storage {
     map: HashMap<String, String>,
     versions: Vec<HashMap<String, String>>, // todo! might be a better idea to implement persistent binary tree.

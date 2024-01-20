@@ -2,14 +2,18 @@
 
 ## Features
 - Multithreaded TCP server
+- Sharding
+- gRPC connection between shards and manager
 - Persistency
 - Caching least recently used values with memcached
 - Transactions support
-- Sharding (in progress)
 
 ## Building
 1. Configure the environmental variables in `config.toml`.
-2. Use `cargo build` to build the executable.
+2. Use `cargo build` to build the executables.
+3. Run `./target/debug/shard --help` to check and set the list of available options.
+4. Run `./target/debug/manager --help` to check and set the list of available options.
+5. Run as many shards as you need and the manager.
 
 ## API
 
@@ -90,16 +94,10 @@ Possible errors: memcached connection/storage errors, input-output error.
 
 > ROLLBACK:
 > ```
-> rolback <key> <commit>
+> rollback <key> <commit>
 > ```
-Lets you see the value with `key` at `n`'th commit starting with `0` from the current. This being said that commits are enumerated starting from the last one.
+Lets you see the value with `key` at `n'th commit starting with `0` from the current. This being said that commits are enumerated starting from the last one.
 
 Returns `value`.
 
 Possible errors: memcached connection/storage errors, input-output error.
-
-> HELP:
-> ```
-> help
-> ```
-Lets you see the list of available commands with subtle descriptions.

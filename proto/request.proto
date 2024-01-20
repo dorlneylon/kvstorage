@@ -1,0 +1,14 @@
+syntax = "proto3";
+package rpc_query;
+
+service Request {
+    rpc RequestQuery(Query) returns (QueryResponse);
+}
+
+message Query { // since grpc does not support rust's enums with aux args, we have to serialize it first and then deserialize it
+    string command = 1;
+}
+
+message QueryResponse {
+    string message = 1;
+}

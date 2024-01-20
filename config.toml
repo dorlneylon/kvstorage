@@ -3,3 +3,5 @@ ADDRESS = "127.0.0.1:6800"
 CLIENT = "memcache://localhost:11211?timeout=10&tcp_nodelay=true"
 LOGPATH = "server.log"
 FILEPATH = "session.json"
+MODULO = 57599 # 239 * 241
+PHI = 57120
