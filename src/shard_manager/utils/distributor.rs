@@ -23,7 +23,7 @@ impl CommandDistributor {
         key.hash(&mut hasher);
         hasher.finish() as u32 % self.num_shards
     }
-
+    
     pub async fn serialize_cmd(&self, cmd: Command) -> Result<String, Error> {
         let serialized_cmd = serde_json::to_string(&cmd)?;
         Ok(serialized_cmd)

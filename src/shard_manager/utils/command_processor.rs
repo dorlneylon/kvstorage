@@ -5,11 +5,26 @@ use async_recursion::async_recursion;
 
 #[async_recursion]
 pub async fn process_command(distributor: &CommandDistributor, (cmd, addr): (Command, String)) -> Result<String, Error> {
+    let client = RequestClient::connect(addr.clone()).await.map_err(|e| {
+        let ans = format!("Failed to connect to client at {}: {}", addr, e);
+        println!("The client is unavailable at the moment: {}", ans);
+        Error::new(std::io::ErrorKind::AddrNotAvailable, ans)
+    });
+
+    if client.is_err() {
+        return Ok(format!("The client is unavailable at the moment: {}", client.unwrap_err()));
+    }
+    let mut client = client.unwrap();
+
+    let _ = client.ping(tonic::Request::new(Query { command: "".to_string() })).await.map_err(|e| {
+        let ans = format!("Failed to ping the client at {}: {}.", addr, e);
+        println!("The client is unavailable at the moment: {}", ans);
+        e
+    }).unwrap().into_inner().message;
+
     match cmd {
         Command::Clear() => {
-            let mut responses = Vec::new();
-        
-            for client in distributor.offset..distributor.num_shards {
+            for client in distributor.offset..distributor.offset+distributor.num_shards {
                 let addr = format!("http://{}:{}", &addr.split(':').nth(1).unwrap()[2..], client);
         
                 let serialized_cmd = match distributor.serialize_cmd(Command::Clear()).await {
@@ -20,14 +35,20 @@ pub async fn process_command(distributor: &CommandDistributor, (cmd, addr): (Com
                         return Err(e);
                     }
                 };
+
+                let mut client = RequestClient::connect(addr.clone()).await.map_err(|e| {
+                    let ans = format!("Failed to connect to client at {}: {}", addr, e);
+                    println!("{}", ans);
+                    Error::new(std::io::ErrorKind::AddrNotAvailable, ans)
+                }).unwrap();
         
-                match send_command_to_client(addr, serialized_cmd).await {
-                    Ok(response) => responses.push(response),
+                match send_command_to_client(&mut client, serialized_cmd).await {
+                    Ok(_) => {},
                     Err(e) => return Err(e)
                 };
             }
         
-            Ok(responses.join("\n"))
+            Ok("OK".to_string())
         },
         Command::Transact(commands) => {
             let mut tasks: Vec<(Command, String)> = vec![];
@@ -75,24 +96,17 @@ pub async fn process_command(distributor: &CommandDistributor, (cmd, addr): (Com
                     return Err(e);
                 }
             };
-        
-            let addr = format!("http://{}:{}", &addr.split(':').nth(1).unwrap()[2..], distributor.which(cmd.get_key()) + distributor.offset);
-            send_command_to_client(addr, serialized_cmd).await
+
+            send_command_to_client(&mut client, serialized_cmd).await
         }
     }
 }
 
-async fn send_command_to_client(client_addr: String, serialized_cmd: String) -> Result<String, Error> {
-    let mut client = RequestClient::connect(client_addr.clone()).await.map_err(|e| {
-        let ans = format!("Failed to connect to client at {}: {}", client_addr, e);
-        println!("{}", ans);
-        Error::new(std::io::ErrorKind::AddrNotAvailable, ans)
-    })?;
-
+async fn send_command_to_client(client: &mut RequestClient<tonic::transport::Channel>, serialized_cmd: String) -> Result<String, Error> {
     let request = tonic::Request::new(Query { command: serialized_cmd });
 
     let response = client.request_query(request).await.map_err(|e| {
-        let ans = format!("Failed to send command to client at {}: {}", client_addr, e);
+        let ans = format!("Failed to send command to client at {}", e);
         println!("{}", ans);
         e
     }).unwrap().into_inner().message;

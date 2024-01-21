@@ -13,8 +13,8 @@ struct Args {
     port: u16,
     #[clap(short, long, default_value = "1")]
     shards: u32,
-    #[clap(short, long, default_value = "./server.log")]
-    logpath: String,
+    #[clap(short, long, default_value = "6080")]
+    offset: u32,
 }
 
 #[tokio::main]
@@ -23,11 +23,11 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let conn_addr = args.address;
     let shards = args.shards;
-    let logpath = args.logpath;
+    let offset = args.offset;
 
-    if vec![&conn_addr, &logpath].iter().any(|&x| x.is_empty()) || shards == 0 {
+    if conn_addr.is_empty() {
         panic!("Not enough arguments. Use ./shard --help to see the usage.");
     }
 
-    run(format!("{}:{}", conn_addr, args.port).as_str(), shards).await
+    run(format!("{}:{}", conn_addr, args.port).as_str(), shards, offset).await
 }

@@ -96,7 +96,7 @@ Possible errors: memcached connection/storage errors, input-output error.
 > ```
 > rollback <key> <commit>
 > ```
-Lets you see the value with `key` at `n'th commit starting with `0` from the current. This being said that commits are enumerated starting from the last one.
+Lets you see the value with `key` at `n`'th commit starting with `0` from the current. This being said that commits are enumerated starting from the last one.
 
 Returns `value`.
 

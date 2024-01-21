@@ -6,8 +6,8 @@ pub enum Command {
     Get(String),
     Set(String, String),
     Del(String),
-    Incr(String, u64),
-    Decr(String, u64),
+    Incr(String, i64),
+    Decr(String, i64),
     Transact(Vec<Command>),
     Rollback(String, u64),
     Clear(),
@@ -22,7 +22,6 @@ impl fmt::Display for Command {
 
 #[allow(dead_code)]
 impl Command {
-    // todo! make look clean
     pub fn new(s: &str) -> Command {
         let command_str = s.split_whitespace().next().unwrap_or_default();
         match command_str.to_lowercase().as_str() {
@@ -34,17 +33,15 @@ impl Command {
                 Command::Set(key.to_string(), value.to_string())
             },
             "del" => Command::Del(s[s.find(' ').map(|i| i + 1).unwrap_or(s.len())..].to_string()),
-            "incr" => {
+            "incr" | "decr" => {
                 let mut parts = s.splitn(3, ' ').skip(1);
                 let key = parts.next().unwrap_or_default();
-                let increment_value = parts.next().unwrap_or_default().parse::<u64>().unwrap();
-                Command::Incr(key.to_string(), increment_value)
-            },
-            "decr" => {
-                let mut parts = s.splitn(3, ' ').skip(1);
-                let key = parts.next().unwrap_or_default();
-                let increment_value = parts.next().unwrap_or_default().parse::<u64>().unwrap();
-                Command::Decr(key.to_string(), increment_value)
+                let increment_value = parts.next().unwrap_or_default().parse::<i64>().unwrap();
+                match command_str.to_lowercase().as_str() {
+                    "incr" => Command::Incr(key.to_string(), increment_value),
+                    "decr" => Command::Decr(key.to_string(), increment_value),
+                    _ => Command::Unknown(s.to_string()),
+                }
             },
             "transact:" => {
                 let ss = s[s.find('\n').map(|i| i + 1).unwrap_or(s.len())..].to_string();
