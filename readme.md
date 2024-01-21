@@ -15,6 +15,11 @@
 4. Run `./target/debug/manager --help` to check and set the list of available options.
 5. Run as many shards as you need and the manager.
 
+## Demo
+https://github.com/dorlneylon/kvstorage/assets/65495639/0dd6f3a4-ae15-4a45-941b-7880027021a6
+
+
+
 ## API
 
 > GET:
